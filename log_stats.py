@@ -4,6 +4,17 @@ import re
 import sys
 from collections import defaultdict, Counter
 
+def main(log_file):
+    if not os.path.isfile(log_file):
+        print(f"Error: {log_file} not found.")
+        sys.exit(1)
+
+    with open(log_file, 'r') as f:
+        lines = f.readlines()
+
+if __name__ == "__main__":
+    main(sys.argv[1])
+
 log_pattern = re.compile(
     r'(?P<host>\S+) \S+ \S+ \[(?P<datetime>[^\]]+)\] "(?P<method>\S+) (?P<resource>\S+) \S+" (?P<status>\d{3}) (?P<size>\S+) ".*?" ".*?"'
 )
