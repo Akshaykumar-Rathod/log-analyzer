@@ -2,18 +2,8 @@
 
 import re
 import sys
-from collections import defaultdict, Counter
-
-def main(log_file):
-    if not os.path.isfile(log_file):
-        print(f"Error: {log_file} not found.")
-        sys.exit(1)
-
-    with open(log_file, 'r') as f:
-        lines = f.readlines()
-
-if __name__ == "__main__":
-    main(sys.argv[1])
+import os
+from collections import Counter
 
 log_pattern = re.compile(
     r'(?P<host>\S+) \S+ \S+ \[(?P<datetime>[^\]]+)\] "(?P<method>\S+) (?P<resource>\S+) \S+" (?P<status>\d{3}) (?P<size>\S+) ".*?" ".*?"'
@@ -21,15 +11,12 @@ log_pattern = re.compile(
 
 def parse_log_line(line):
     match = log_pattern.match(line)
-    if match:
-        return match.groupdict()
-    else:
-        return None
+    return match.groupdict() if match else None
 
 def human_readable_percent(part, total):
     return f"{(part / total) * 100:.2f}%" if total else "0.00%"
 
-def main(log_file):
+def analyze_log(log_file):
     total_requests = 0
     total_data = 0
     resource_counter = Counter()
@@ -50,6 +37,9 @@ def main(log_file):
             host_counter[data['host']] += 1
             status_counter[data['status']] += 1
 
+    return total_requests, total_data, resource_counter, host_counter, status_counter
+
+def print_report(total_requests, total_data, resource_counter, host_counter, status_counter):
     if total_requests == 0:
         print("No valid log lines found.")
         return
@@ -85,9 +75,19 @@ def main(log_file):
     for cls, count in classes.items():
         print(f"  {cls}: {human_readable_percent(count, total_requests)}")
 
-if __name__ == "__main__":
+def main():
     if len(sys.argv) != 2:
         print(f"Usage: {sys.argv[0]} <log_file>")
         sys.exit(1)
-    main(sys.argv[1])
+
+    log_file = sys.argv[1]
+    if not os.path.isfile(log_file):
+        print(f"Error: {log_file} not found.")
+        sys.exit(1)
+
+    total_requests, total_data, resource_counter, host_counter, status_counter = analyze_log(log_file)
+    print_report(total_requests, total_data, resource_counter, host_counter, status_counter)
+
+if __name__ == "__main__":
+    main()
 
